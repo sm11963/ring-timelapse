@@ -1,4 +1,4 @@
-// Copyright (c) Wictor Wilén. All rights reserved. 
+// Copyright (c) Wictor Wilén. All rights reserved.
 // Licensed under the MIT license.
 
 import { writeFile, mkdirSync, existsSync } from 'fs';
@@ -23,11 +23,11 @@ async function snapshot() {
         mkdirSync(path.resolve(__dirname, "target"));
     }
 
-    cameras.forEach(camera => {
+    const promises = cameras.map(camera => {
         const name = lodash.camelCase(camera.name);
         log(`Retrieving snapshot for ${camera.name}`);
 
-        camera.getSnapshot().then(function (result) {
+        return camera.getSnapshot().then(function (result) {
             try {
                 log((path.resolve(__dirname, "target", name)));
                 if (!existsSync(path.resolve(__dirname, "target", name))) {
@@ -44,6 +44,10 @@ async function snapshot() {
         }).catch(err => {
             log(`Snapshot error: ${err}`);
         })
+    });
+
+    Promise.all(promises).finally(function () {
+      process.exit(0)
     });
 }
 

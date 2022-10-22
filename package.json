@@ -9,7 +9,8 @@
     "build-container-latest": "npm run clean && docker build . -t wictorwilen/ring-timelapse:latest",
     "sh": "docker -it wictorwilen/ring-timelapse:dev sh",
     "snapshot": "node dist/snapshot",
-    "timelapse": "node dist/timelapse"
+    "timelapse": "node dist/timelapse",
+    "snapshot-video": "node dist/snapshot-video"
   },
   "author": "Wictor Wilén",
   "maintainers": [
@@ -37,8 +38,10 @@
   "dependencies": {
     "dotenv": "^8.2.0",
     "fluent-ffmpeg": "^2.1.2",
+    "ffmpeg": "^0.0.4",
     "lodash": "^4.17.21",
-    "ring-client-api": "^9.21.0"
+    "node-prune": "^1.0.2",
+    "ring-client-api": "^11.3.1"
   },
   "funding": {
     "type": "individual",
