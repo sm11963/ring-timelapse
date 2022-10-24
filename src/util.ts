@@ -1,3 +1,7 @@
+
+// Adds timestamps to all logs
+require('log-timestamp')
+
 import { PathLike, readdirSync } from 'fs';
 
 export function getTimestampFilenames(path:PathLike, extension:string): string[] {
@@ -11,5 +15,9 @@ export function getTimestampFilenames(path:PathLike, extension:string): string[]
       const values = regexp.exec(f)
       return values![1]
     })
+}
+
+export function delay(ms: number) {
+    return new Promise( resolve => setTimeout(resolve, ms) );
 }
 

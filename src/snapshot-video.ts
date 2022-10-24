@@ -1,18 +1,18 @@
 // Copyright (c) Wictor Wilén. All rights reserved.
 // Licensed under the MIT license.
 
+// Adds timestamps to all logs
+require('log-timestamp')
+
 import { writeFile, mkdirSync, existsSync, readFile } from 'fs';
 import { RingApi } from 'ring-client-api'
 import { promisify } from 'util';
+import { delay } from './util';
 import * as path from 'path'
 import * as dotenv from "dotenv";
 import * as lodash from "lodash";
 
 const log = console.log;
-
-function delay(ms: number) {
-    return new Promise( resolve => setTimeout(resolve, ms) );
-}
 
 async function snapshot_video() {
     log("running snapshot_video")
@@ -45,11 +45,16 @@ async function snapshot_video() {
 
     const cameras = await ringApi.getCameras();
 
-    for (var camera of cameras) {
+    for (const {camera, index} of cameras.map((v, i) => ({camera: v, index: i}))) {
         const name = lodash.camelCase(camera.name);
 
-        if (!enabledCameraNames.includes(name)) {
+        if (enabledCameraNames.filter(s => s.length > 0).length > 0 && !enabledCameraNames.includes(name)) {
           continue
+        }
+
+        if (index > 1) {
+          console.log('Waiting 2s to improve video capture for sequential requests...')
+          await delay(2000)
         }
 
         const snapshotPath = path.resolve(__dirname, 'target', 'video_snapshots', name);
@@ -73,8 +78,6 @@ async function snapshot_video() {
         } catch (err) {
           log(`Video snapshot error: ${err}`);
         }
-        log('Waiting 2s ...');
-        await delay(2000);
     }
 
     process.exit(0);

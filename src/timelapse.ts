@@ -1,17 +1,20 @@
 // Copyright (c) Wictor Wilén. All rights reserved.
 // Licensed under the MIT license.
 
+// Adds timestamps to all logs
+require('log-timestamp')
+
 import { mkdirSync, writeFileSync, rmSync, existsSync, readdirSync, lstatSync } from 'fs';
 import * as path from 'path'
 import FfmpegCommand from 'fluent-ffmpeg';
 import parser from 'cron-parser';
 import { getTimestampFilenames } from './util';
 
+// TODO: Add timestamp to logs entries
+
 async function timelapse() {
     const cameraImagesRootPath = path.resolve(__dirname, "target", "video_snapshot_images");
     const outputRootPath = path.resolve(__dirname, "target", "timelapses");
-    //const cameraImagesRootPath = path.resolve('/Users/smiller/Desktop/docker_writable/video_snapshot_images')
-    //const outputRootPath = path.resolve('/Users/smiller/Desktop/docker_writable/timelapses')
 
     if (!existsSync(cameraImagesRootPath)) {
       console.log("WARNING: No input images found at ", cameraImagesRootPath, " skiping creating timelapse")

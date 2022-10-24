@@ -1,6 +1,9 @@
 // Copyright (c) Wictor Wilén. All rights reserved.
 // Licensed under the MIT license.
 
+// Adds timestamps to all logs
+require('log-timestamp')
+
 import { writeFile, mkdirSync, existsSync } from 'fs';
 import { RingApi } from 'ring-client-api'
 import * as path from 'path'

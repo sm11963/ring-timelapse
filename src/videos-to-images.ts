@@ -1,16 +1,22 @@
 // Copyright (c) Sam Miller. All rights reserved.
 // Licensed under the MIT license.
 
+// Adds timestamps to all logs
+require('log-timestamp')
+
 import { PathLike, writeFileSync, rmSync, mkdirSync, existsSync, readdirSync, lstatSync } from 'fs';
 import * as path from 'path'
 import FfmpegCommand from 'fluent-ffmpeg';
 import { getTimestampFilenames } from './util';
 
+// TODO: Implement cleaning up processed videos (deleting them)
+// TODO: Implement moving errored files to specific directory
+// TODO: Use new output directory path (and take from parameter
+// TODO: Add timestamp to all logs
+
 async function videosToImages() {
     const foldersPath = path.resolve(__dirname, "target", "video_snapshots");
     const outputDir = path.resolve(__dirname, "target", "video_snapshot_images");
-    //const foldersPath = path.resolve('/Users/smiller/Desktop/docker_writable/video_snapshots')
-    //const outputDir = path.resolve('/Users/smiller/Desktop/docker_writable/video_snapshot_images')
     const folders = readdirSync(foldersPath);
 
     folders.forEach(f => {
@@ -62,6 +68,14 @@ async function videosToImages() {
                   .frames(1)
                   .outputOptions(['-q:v 5'])
                   .save(outputFilePath)
+
+                // TODO: Add timestamp to images
+                /*
+                 * ffmpeg -ss 00:00:01 -i /Users/smiller/Desktop/docker_writable/video_snapshots/backyard/1666419965853.mp4 -vf drawtext="fontsize=32:fontcolor=white:text='2022-10-23 12\:04':x=20:y=(H-th-20)" -frames:v 1 output.png
+                 *
+                 * WITH BORDERS
+                 * ffmpeg -ss 00:00:01 -i /Users/smiller/Desktop/docker_writable/video_snapshots/backyard/1666419965853.mp4 -vf drawtext="fontsize=32:fontcolor=white:text='2022-10-23 12\:04':x=20:y=(H-th-20):bordercolor=#000000@0.2:borderw=2" -frames:v 1 output.png
+                 */
 
                 // Kill ffmpeg after timeout just in case
                 const timeoutSeconds = Number(process.env.VIDEO_TO_IMAGE_FFMPEG_TIMEOUT ?? '300')
