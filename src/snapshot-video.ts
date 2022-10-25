@@ -14,6 +14,9 @@ import * as lodash from "lodash";
 
 const log = console.log;
 
+// TODO: Send email/notification when there is a failure (like token expired)
+// TODO: See if we can remove ffmpeg path
+
 async function snapshot_video() {
     log("running snapshot_video")
     const ringApi = new RingApi({
