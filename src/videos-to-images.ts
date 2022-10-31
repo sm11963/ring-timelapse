@@ -6,8 +6,9 @@ require('log-timestamp')
 
 import { PathLike, writeFileSync, rmSync, mkdirSync, existsSync, readdirSync, lstatSync } from 'fs';
 import * as path from 'path'
+import * as dotenv from "dotenv";
 import FfmpegCommand from 'fluent-ffmpeg';
-import { getTimestampFilenames } from './util';
+import { getTimestampFilenames, baseContentDirectory } from './util';
 
 // TODO: Implement cleaning up processed videos (deleting them)
 // TODO: Implement moving errored files to specific directory
@@ -15,14 +16,14 @@ import { getTimestampFilenames } from './util';
 // TODO: Add timestamp to all logs
 
 async function videosToImages() {
-    const foldersPath = path.resolve(__dirname, "target", "video_snapshots");
-    const outputDir = path.resolve(__dirname, "target", "video_snapshot_images");
-    const folders = readdirSync(foldersPath);
+    const inputsDir = path.join(baseContentDirectory(), "video_snapshots");
+    const outputsDir = path.join(baseContentDirectory(), "video_snapshot_images");
+    const cameraInputDirs = readdirSync(inputsDir);
 
-    folders.forEach(f => {
-        const cameraPath = path.join(foldersPath, f);
-        const cameraOutputDir = path.join(outputDir, f);
-        if (lstatSync(cameraPath).isDirectory()) {
+    cameraInputDirs.forEach(f => {
+        const cameraInputDir = path.join(inputsDir, f);
+        const cameraOutputDir = path.join(outputsDir, f);
+        if (lstatSync(cameraOutputDir).isDirectory()) {
             console.log(`Processing video snapshots for camera: ${f}`);
 
             var latestImageTimestamp = 0
@@ -37,19 +38,19 @@ async function videosToImages() {
                 }
             }
 
-            const processed_files = getTimestampFilenames(cameraPath, 'mp4')
-            const new_files = processed_files.filter(f => {
+            const processedFiles = getTimestampFilenames(cameraOutputDir, 'mp4')
+            const newFiles = processedFiles.filter(f => {
               return Number(f) > latestImageTimestamp
             })
 
-            console.log(`${processed_files.length} total input files. Processing ${new_files.length} new files...`)
+            console.log(`${processedFiles.length} total input files. Processing ${newFiles.length} new files...`)
 
             // Reverse to plan on process from oldest to newest via popping off the end
-            var to_process = new_files.reverse()
+            var toProcess = newFiles.reverse()
 
             const processNext = () => {
-              if (to_process.length > 0) {
-                const f = to_process.pop()
+              if (toProcess.length > 0) {
+                const f = toProcess.pop()
                 console.log(`Processing ${f+'.mp4'}...`)
 
                 const outputFilePath = path.join(cameraOutputDir, f + '.jpg')
@@ -63,7 +64,7 @@ async function videosToImages() {
                     console.log(`Wrote ${outputFilePath}`)
                     processNext()
                   })
-                  .input(path.join(cameraPath, f + '.mp4'))
+                  .input(path.join(cameraOutputDir, f + '.mp4'))
                   .seekInput('00:00:01')
                   .frames(1)
                   .outputOptions(['-q:v 5'])
@@ -107,6 +108,8 @@ async function videosToImages() {
         }
     });
 }
+
+dotenv.config();
 
 videosToImages();
 

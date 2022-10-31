@@ -6,15 +6,16 @@ require('log-timestamp')
 
 import { mkdirSync, writeFileSync, rmSync, existsSync, readdirSync, lstatSync } from 'fs';
 import * as path from 'path'
+import * as dotenv from "dotenv";
 import FfmpegCommand from 'fluent-ffmpeg';
 import parser from 'cron-parser';
-import { getTimestampFilenames } from './util';
+import { getTimestampFilenames, baseContentDirectory } from './util';
 
 // TODO: Add timestamp to logs entries
 
 async function timelapse() {
-    const cameraImagesRootPath = path.resolve(__dirname, "target", "video_snapshot_images");
-    const outputRootPath = path.resolve(__dirname, "target", "timelapses");
+    const cameraImagesRootPath = path.join(baseContentDirectory(), "video_snapshot_images");
+    const outputRootPath = path.join(baseContentDirectory(), "timelapses");
 
     if (!existsSync(cameraImagesRootPath)) {
       console.log("WARNING: No input images found at ", cameraImagesRootPath, " skiping creating timelapse")
@@ -126,6 +127,8 @@ async function timelapse() {
     }
 
 }
+
+dotenv.config();
 
 timelapse();
 

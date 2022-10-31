@@ -1,4 +1,4 @@
-// Copyright (c) Wictor Wilén. All rights reserved.
+// Copyright (c) Sam Miller. All rights reserved.
 // Licensed under the MIT license.
 
 // Adds timestamps to all logs
@@ -7,28 +7,24 @@ require('log-timestamp')
 import { writeFile, mkdirSync, existsSync, readFile } from 'fs';
 import { RingApi } from 'ring-client-api'
 import { promisify } from 'util';
-import { delay } from './util';
+import { delay, baseContentDirectory } from './util';
 import * as path from 'path'
 import * as dotenv from "dotenv";
 import * as lodash from "lodash";
-
-const log = console.log;
 
 // TODO: Send email/notification when there is a failure (like token expired)
 // TODO: See if we can remove ffmpeg path
 
 async function snapshot_video() {
-    log("running snapshot_video")
+    console.log("running snapshot_video")
     const ringApi = new RingApi({
         refreshToken: process.env.API_TOKEN as string,
-        debug: true,
-        ffmpegPath: '/usr/bin/ffmpeg'
+        debug: true
+//       ffmpegPath: '/usr/bin/ffmpeg'
     });
 
     ringApi.onRefreshTokenUpdated.subscribe(
       async ({ newRefreshToken, oldRefreshToken }) => {
-        console.log('Refresh Token Updated: ', newRefreshToken)
-
         if (!oldRefreshToken) {
           return
         }
@@ -39,14 +35,18 @@ async function snapshot_video() {
             .replace(oldRefreshToken, newRefreshToken)
 
         await promisify(writeFile)('.env', updatedConfig)
+
+        console.log('Ring API refresh Token updated!')
       }
     )
 
-    log(`FFMPEG Path ${ringApi.options.ffmpegPath}`);
+    console.log(`FFMPEG Path ${ringApi.options.ffmpegPath}`);
     const enabledCameraNames = (process.env.VIDEO_SNAPSHOT_CAMERAS as string ?? '').split(',');
-    log(`Enabled cameras from env: ${enabledCameraNames}`);
+    console.log(`Enabled cameras from env: ${enabledCameraNames}`);
 
     const cameras = await ringApi.getCameras();
+
+    console.log(`Found cameras from Ring: ${cameras.map(c => { lodash.camelCase(c.name) })}`)
 
     for (const {camera, index} of cameras.map((v, i) => ({camera: v, index: i}))) {
         const name = lodash.camelCase(camera.name);
@@ -60,16 +60,16 @@ async function snapshot_video() {
           await delay(2000)
         }
 
-        const snapshotPath = path.resolve(__dirname, 'target', 'video_snapshots', name);
-        log(`Retrieving video snapshot for ${camera.name}`);
+        const snapshotPath = path.join(baseContentDirectory(), 'video_snapshots', name);
+        console.log(`Retrieving video snapshot for ${camera.name}`);
 
         try {
-          log(snapshotPath);
+          console.log(snapshotPath);
           if (!existsSync(snapshotPath)) {
               mkdirSync(snapshotPath, { recursive: true });
           }
         } catch (err) {
-          log(`Error: ${err}`);
+          console.log(`Error: ${err}`);
         }
 
         const filename = Date.now() + '.mp4'
@@ -77,58 +77,13 @@ async function snapshot_video() {
 
         try {
           await camera.recordToFile(filepath, 2);
-          log('Saved ' + filepath + '!');
+          console.log('Saved ' + filepath + '!');
         } catch (err) {
-          log(`Video snapshot error: ${err}`);
+          console.log(`Video snapshot error: ${err}`);
         }
     }
-
-    process.exit(0);
-
-//    const camera = cameras[0];
-//      const name = lodash.camelCase(camera.name);
-//      log(`Retrieving video snapshot for ${camera.name}`);
-//
-//      try {
-//        log((path.resolve(__dirname, "target", name)));
-//        if (!existsSync(path.resolve(__dirname, "target", name))) {
-//            mkdirSync(path.resolve(__dirname, "target", name));
-//        }
-//      } catch (err) {
-//        log(`Error: ${err}`);
-//      }
-//
-//      const filename = Date.now() + '.mp4';
-//      const filepath = path.resolve(__dirname, "target", path.join(name, filename));
-//      await camera.recordToFile(filepath, 15);
-//      log('Saved ' + filepath + '!');
-//    const promises = cameras.map(camera => {
-//        const name = lodash.camelCase(camera.name);
-//        log(`Retrieving video snapshot for ${camera.name}`);
-//
-//        try {
-//          log((path.resolve(__dirname, "target", name)));
-//          if (!existsSync(path.resolve(__dirname, "target", name))) {
-//              mkdirSync(path.resolve(__dirname, "target", name));
-//          }
-//        } catch (err) {
-//          log(`Error: ${err}`);
-//        }
-//
-//        const filename = Date.now() + '.mp4'
-//        const filepath = path.resolve(__dirname, "target", path.join(name, filename))
-//        return camera.recordToFile(filepath, 15).then(function (result) {
-//          log('Saved ' + filepath + '!');
-//        }).catch(err => {
-//          log(`Video snapshot error: ${err}`);
-//        })
-//    });
-//
-//    Promise.all(promises).finally(function () {
-//      process.exit(0)
-//    });
 }
 
 dotenv.config();
 
-snapshot_video()
+snapshot_video();
