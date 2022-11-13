@@ -19,8 +19,8 @@ async function snapshot_video() {
     console.log("running snapshot_video")
     const ringApi = new RingApi({
         refreshToken: process.env.API_TOKEN as string,
-        debug: true
-//       ffmpegPath: '/usr/bin/ffmpeg'
+        debug: true,
+        ffmpegPath: '/usr/bin/ffmpeg'
     });
 
     ringApi.onRefreshTokenUpdated.subscribe(
@@ -46,7 +46,7 @@ async function snapshot_video() {
 
     const cameras = await ringApi.getCameras();
 
-    console.log(`Found cameras from Ring: ${cameras.map(c => { lodash.camelCase(c.name) })}`)
+    console.log(`Found ${cameras.length} cameras from Ring: ${cameras.map(c => { lodash.camelCase(c.name) })}`)
 
     for (const {camera, index} of cameras.map((v, i) => ({camera: v, index: i}))) {
         const name = lodash.camelCase(camera.name);
@@ -64,7 +64,6 @@ async function snapshot_video() {
         console.log(`Retrieving video snapshot for ${camera.name}`);
 
         try {
-          console.log(snapshotPath);
           if (!existsSync(snapshotPath)) {
               mkdirSync(snapshotPath, { recursive: true });
           }
@@ -81,7 +80,11 @@ async function snapshot_video() {
         } catch (err) {
           console.log(`Video snapshot error: ${err}`);
         }
+        camera.disconnect()
     }
+
+    ringApi.disconnect()
+    process.exit(0);
 }
 
 dotenv.config();

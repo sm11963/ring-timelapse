@@ -20,6 +20,11 @@ async function videosToImages() {
     const outputsDir = path.join(baseContentDirectory(), "video_snapshot_images");
     const cameraInputDirs = readdirSync(inputsDir);
 
+    if (!existsSync(outputsDir)) {
+        console.log(`Creating output directory: ${outputsDir}`);
+        mkdirSync(outputsDir, { recursive: true });
+    }
+
     cameraInputDirs.forEach(f => {
         const cameraInputDir = path.join(inputsDir, f);
         const cameraOutputDir = path.join(outputsDir, f);

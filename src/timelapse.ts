@@ -82,6 +82,10 @@ async function timelapse() {
             writeFileSync(templateFilePath, template);
 
             console.log(`Creating timelapse with inputs from ${templateFilePath}...`);
+
+            // Command for debugging:
+            // ffmpeg -f concat -safe 0 -i <input_textfile> -framerate 24 -c:v libx265 -crf 28 -tag:v hvc1 -an <outout_filename>.mp4
+
             let command = FfmpegCommand()
               .on('error', (err) => {
                   console.log('An error occurred: ' + err.message);

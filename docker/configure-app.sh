@@ -20,4 +20,4 @@ chmod -R 770 /home/docker_internal
 
 # Set/update API_TOKEN in environment for application
 sed -i '/^API_TOKEN/d' /app/.env
-echo "API_TOKEN=\"$TOKEN\"" >> /app/.env
+echo "API_TOKEN=\"$RING_API_TOKEN\"" >> /app/.env
